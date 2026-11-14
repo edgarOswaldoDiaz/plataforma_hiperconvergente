@@ -19,6 +19,11 @@ Esta integración puede conceptualizarse como una arquitectura de datos intelige
 
 **Temas**
 
+- Fundamentos y arquitectura tecnológica
+- Gobernanza, normatividad y calidad de los datos
+- Seguridad, analítica e inteligencia artificial
+- Administración, sostenibilidad y gestión de riesgos
+- Implementación y evolución institucional
 
 ______________________
 
