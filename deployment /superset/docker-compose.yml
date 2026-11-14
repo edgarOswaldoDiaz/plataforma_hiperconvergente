@@ -1,0 +1,62 @@
+name: superset-stack
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${SUPERSET_DB_NAME:-superset}
+      POSTGRES_USER: ${SUPERSET_DB_USER:-superset}
+      POSTGRES_PASSWORD: ${SUPERSET_DB_PASSWORD:?Set SUPERSET_DB_PASSWORD in .env}
+    volumes: [superset-db:/var/lib/postgresql/data]
+    networks: [superset-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  init:
+    image: apache/superset:6.1.0
+    restart: "no"
+    depends_on:
+      db: {condition: service_healthy}
+    environment:
+      SUPERSET_CONFIG_PATH: /app/pythonpath/superset_config.py
+      SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY:?Set SUPERSET_SECRET_KEY in .env}
+      SUPERSET_ADMIN_USERNAME: ${SUPERSET_ADMIN_USERNAME:-admin}
+      SUPERSET_ADMIN_PASSWORD: ${SUPERSET_ADMIN_PASSWORD:?Set SUPERSET_ADMIN_PASSWORD in .env}
+      SUPERSET_ADMIN_FIRSTNAME: Admin
+      SUPERSET_ADMIN_LASTNAME: User
+      SUPERSET_ADMIN_EMAIL: admin@example.invalid
+      SUPERSET_DB_USER: ${SUPERSET_DB_USER:-superset}
+      SUPERSET_DB_PASSWORD: ${SUPERSET_DB_PASSWORD}
+      SUPERSET_DB_NAME: ${SUPERSET_DB_NAME:-superset}
+    volumes: [./superset_config.py:/app/pythonpath/superset_config.py:ro]
+    command: >-
+      /bin/sh -c "superset db upgrade &&
+      (superset fab create-admin --username \"$$SUPERSET_ADMIN_USERNAME\" --firstname \"$$SUPERSET_ADMIN_FIRSTNAME\" --lastname \"$$SUPERSET_ADMIN_LASTNAME\" --email \"$$SUPERSET_ADMIN_EMAIL\" --password \"$$SUPERSET_ADMIN_PASSWORD\" || true) &&
+      superset init"
+    networks: [superset-net]
+
+  superset:
+    image: apache/superset:6.1.0
+    restart: unless-stopped
+    depends_on:
+      init: {condition: service_completed_successfully}
+    environment:
+      SUPERSET_CONFIG_PATH: /app/pythonpath/superset_config.py
+      SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY:?Set SUPERSET_SECRET_KEY in .env}
+      SUPERSET_DB_USER: ${SUPERSET_DB_USER:-superset}
+      SUPERSET_DB_PASSWORD: ${SUPERSET_DB_PASSWORD}
+      SUPERSET_DB_NAME: ${SUPERSET_DB_NAME:-superset}
+    ports: ["127.0.0.1:8088:8088"]
+    volumes: [./superset_config.py:/app/pythonpath/superset_config.py:ro]
+    command: ["/bin/sh", "-c", "gunicorn --bind 0.0.0.0:8088 --workers 4 --worker-class gthread --threads 8 --timeout 120 'superset.app:create_app()'"]
+    networks: [superset-net]
+    security_opt: ["no-new-privileges:true"]
+
+volumes:
+  superset-db:
+networks:
+  superset-net:
+    driver: bridge

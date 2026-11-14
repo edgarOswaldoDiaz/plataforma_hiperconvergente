@@ -1,0 +1,17 @@
+name: jupyter-lab
+services:
+  notebook:
+    image: quay.io/jupyter/minimal-notebook:python-3.13.14
+    restart: unless-stopped
+    environment:
+      JUPYTER_TOKEN: ${JUPYTER_TOKEN:?Set JUPYTER_TOKEN in .env}
+      JUPYTER_ENABLE_LAB: "yes"
+    ports: ["127.0.0.1:8888:8888"]
+    volumes: [./workspace:/home/jovyan/work]
+    working_dir: /home/jovyan/work
+    networks: [jupyter-net]
+    security_opt: ["no-new-privileges:true"]
+
+networks:
+  jupyter-net:
+    driver: bridge

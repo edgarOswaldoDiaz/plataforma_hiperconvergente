@@ -1,0 +1,31 @@
+name: spark-standalone
+services:
+  master:
+    image: apache/spark:4.3.0-java25-r
+    restart: unless-stopped
+    user: "185:185"
+    entrypoint: ["/opt/spark/bin/spark-class"]
+    command: ["org.apache.spark.deploy.master.Master", "--host", "master", "--port", "7077", "--webui-port", "8080"]
+    environment:
+      SPARK_NO_DAEMONIZE: "true"
+    ports: ["127.0.0.1:18080:8080"]
+    networks: [spark-net]
+    security_opt: ["no-new-privileges:true"]
+
+  worker:
+    image: apache/spark:4.3.0-java25-r
+    restart: unless-stopped
+    user: "185:185"
+    depends_on: [master]
+    entrypoint: ["/opt/spark/bin/spark-class"]
+    command: ["org.apache.spark.deploy.worker.Worker", "spark://master:7077", "--webui-port", "8081"]
+    environment:
+      SPARK_NO_DAEMONIZE: "true"
+      SPARK_WORKER_CORES: ${SPARK_WORKER_CORES:-2}
+      SPARK_WORKER_MEMORY: ${SPARK_WORKER_MEMORY:-2g}
+    networks: [spark-net]
+    security_opt: ["no-new-privileges:true"]
+
+networks:
+  spark-net:
+    driver: bridge

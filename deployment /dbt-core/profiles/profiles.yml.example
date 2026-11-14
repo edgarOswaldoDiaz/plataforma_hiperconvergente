@@ -1,0 +1,14 @@
+# Rename to profiles.yml and fill with a real adapter profile.
+# Example for dbt-postgres after building a custom image with dbt-postgres installed:
+# analytics:
+#   target: dev
+#   outputs:
+#     dev:
+#       type: postgres
+#       host: host.docker.internal
+#       user: dbt_user
+#       password: CHANGE_ME
+#       port: 5432
+#       dbname: analytics
+#       schema: dbt
+#       threads: 4

@@ -1,0 +1,22 @@
+name: vllm-cpu
+services:
+  vllm:
+    image: vllm/vllm-openai-cpu:v0.33.0
+    restart: unless-stopped
+    command:
+      - --model
+      - ${VLLM_MODEL:-Qwen/Qwen2.5-0.5B-Instruct}
+      - --host
+      - 0.0.0.0
+      - --api-key
+      - ${VLLM_API_KEY:?Set VLLM_API_KEY in .env}
+    ports: ["127.0.0.1:8000:8000"]
+    volumes: [vllm-cache:/root/.cache/huggingface]
+    networks: [vllm-net]
+    security_opt: ["no-new-privileges:true"]
+
+volumes:
+  vllm-cache:
+networks:
+  vllm-net:
+    driver: bridge

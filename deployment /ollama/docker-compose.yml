@@ -1,0 +1,15 @@
+name: ollama-local
+services:
+  ollama:
+    image: ollama/ollama:0.40.16
+    restart: unless-stopped
+    ports: ["127.0.0.1:11434:11434"]
+    volumes: [ollama-models:/root/.ollama]
+    networks: [ollama-net]
+    security_opt: ["no-new-privileges:true"]
+
+volumes:
+  ollama-models:
+networks:
+  ollama-net:
+    driver: bridge

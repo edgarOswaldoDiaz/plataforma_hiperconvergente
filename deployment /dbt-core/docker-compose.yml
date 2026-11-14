@@ -1,0 +1,16 @@
+name: dbt-core-tools
+services:
+  dbt:
+    image: ghcr.io/dbt-labs/dbt-core:1.12.7
+    profiles: ["tools"]
+    working_dir: /usr/app
+    entrypoint: ["dbt"]
+    command: ["--help"]
+    volumes:
+      - ./project:/usr/app
+      - ./profiles:/root/.dbt:ro
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,noexec,nosuid
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]

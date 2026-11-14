@@ -1,0 +1,60 @@
+name: apache-ranger-dev
+services:
+  ranger-zk:
+    image: apache/ranger-zk:${RANGER_ZK_VERSION:-2.8.0}
+    hostname: ranger-zk.example.com
+    restart: unless-stopped
+    networks:
+      ranger-net:
+        aliases: [ranger-zk.example.com]
+
+  ranger-solr:
+    image: apache/ranger-solr:${RANGER_VERSION:-2.9.0}
+    hostname: ranger-solr.example.com
+    restart: unless-stopped
+    command: ["solr-precreate", "ranger_audits", "/opt/solr/server/solr/configsets/ranger_audits/"]
+    depends_on: [ranger-zk]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8983/solr/ >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    networks:
+      ranger-net:
+        aliases: [ranger-solr.example.com]
+
+  ranger-db:
+    image: apache/ranger-db:${RANGER_VERSION:-2.9.0}
+    hostname: ranger-db.example.com
+    restart: unless-stopped
+    depends_on: [ranger-zk]
+    healthcheck:
+      test: ["CMD-SHELL", "su -c 'pg_isready -q' postgres"]
+      interval: 10s
+      timeout: 2s
+      retries: 30
+    networks:
+      ranger-net:
+        aliases: [ranger-db.example.com]
+
+  ranger-admin:
+    image: apache/ranger:${RANGER_VERSION:-2.9.0}
+    hostname: ranger.example.com
+    restart: unless-stopped
+    depends_on:
+      ranger-db: {condition: service_healthy}
+      ranger-solr: {condition: service_healthy}
+      ranger-zk: {condition: service_started}
+    environment:
+      RANGER_VERSION: ${RANGER_VERSION:-2.9.0}
+      RANGER_DB_TYPE: postgres
+    command: ["/home/ranger/scripts/ranger.sh"]
+    ports: ["127.0.0.1:6080:6080"]
+    networks:
+      ranger-net:
+        aliases: [ranger.example.com]
+    security_opt: ["no-new-privileges:true"]
+
+networks:
+  ranger-net:
+    driver: bridge

@@ -1,0 +1,78 @@
+name: openmetadata-stack
+services:
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${OM_DATABASE:-openmetadata}
+      POSTGRES_USER: ${OM_DB_USER:-omuser}
+      POSTGRES_PASSWORD: ${OM_DB_PASSWORD:?Set OM_DB_PASSWORD in .env}
+    volumes: [om-db:/var/lib/postgresql/data]
+    networks: [om-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  search:
+    image: opensearchproject/opensearch:2.19.0
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      DISABLE_SECURITY_PLUGIN: "true"
+      OPENSEARCH_JAVA_OPTS: -Xms1g -Xmx1g
+    volumes: [om-search:/usr/share/opensearch/data]
+    networks: [om-net]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health >/dev/null || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 20
+    security_opt: ["no-new-privileges:true"]
+
+  migrate:
+    image: docker.getcollate.io/openmetadata/server:2.0.7
+    restart: "no"
+    depends_on:
+      db: {condition: service_healthy}
+      search: {condition: service_healthy}
+    environment: &om-env
+      DB_DRIVER_CLASS: org.postgresql.Driver
+      DB_SCHEME: postgresql
+      DB_USE_SSL: "false"
+      DB_USER: ${OM_DB_USER:-omuser}
+      DB_USER_PASSWORD: ${OM_DB_PASSWORD}
+      DB_HOST: db
+      DB_PORT: "5432"
+      OM_DATABASE: ${OM_DATABASE:-openmetadata}
+      SEARCH_TYPE: opensearch
+      ELASTICSEARCH_HOST: search
+      ELASTICSEARCH_PORT: "9200"
+      ELASTICSEARCH_SCHEME: http
+      SEARCH_REINDEX: "false"
+    command: ["./bootstrap/openmetadata-ops.sh", "migrate"]
+    networks: [om-net]
+
+  server:
+    image: docker.getcollate.io/openmetadata/server:2.0.7
+    restart: unless-stopped
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    environment: *om-env
+    ports: ["127.0.0.1:8585:8585"]
+    networks: [om-net]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8585/healthcheck >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+    security_opt: ["no-new-privileges:true"]
+
+volumes:
+  om-db:
+  om-search:
+networks:
+  om-net:
+    driver: bridge

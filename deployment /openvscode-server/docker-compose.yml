@@ -1,0 +1,22 @@
+name: openvscode-server
+services:
+  vscode:
+    image: ghcr.io/gitpod-io/openvscode-server:1.109.5
+    restart: unless-stopped
+    entrypoint: ["/home/.openvscode-server/bin/openvscode-server"]
+    command:
+      - --host
+      - 0.0.0.0
+      - --port
+      - "3000"
+      - --connection-token
+      - ${VSCODE_TOKEN:?Set VSCODE_TOKEN in .env}
+      - /home/workspace
+    ports: ["127.0.0.1:3002:3000"]
+    volumes: [./workspace:/home/workspace]
+    networks: [vscode-net]
+    security_opt: ["no-new-privileges:true"]
+
+networks:
+  vscode-net:
+    driver: bridge

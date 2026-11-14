@@ -1,0 +1,89 @@
+name: gitlab-stack
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:19.5.5-ce.0
+    hostname: gitlab.local
+    restart: unless-stopped
+    shm_size: 256m
+    environment:
+      GITLAB_ROOT_PASSWORD: ${GITLAB_ROOT_PASSWORD:?Set GITLAB_ROOT_PASSWORD in .env}
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localhost:8929'
+        gitlab_rails['gitlab_shell_ssh_port'] = 2224
+        gitlab_rails['initial_root_password'] = ENV['GITLAB_ROOT_PASSWORD']
+        gitlab_rails['gitlab_signup_enabled'] = false
+    ports:
+      - "127.0.0.1:8929:80"
+      - "127.0.0.1:2224:22"
+    volumes:
+      - gitlab-config:/etc/gitlab
+      - gitlab-logs:/var/log/gitlab
+      - gitlab-data:/var/opt/gitlab
+    networks: [gitlab-net]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost/-/health >/dev/null || exit 1"]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
+    stop_grace_period: 1m
+    security_opt: ["no-new-privileges:true"]
+
+  docker:
+    image: docker:28.5.2-dind-rootless
+    privileged: true
+    restart: unless-stopped
+    environment:
+      DOCKER_TLS_CERTDIR: /certs
+    command: ["--storage-driver=overlay2"]
+    volumes:
+      - runner-certs:/certs/client
+      - dind-data:/home/rootless/.local/share/docker
+    networks: [gitlab-net]
+    healthcheck:
+      test: ["CMD-SHELL", "docker info >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  runner:
+    image: gitlab/gitlab-runner:v19.5.3
+    restart: unless-stopped
+    depends_on:
+      gitlab:
+        condition: service_started
+      docker:
+        condition: service_healthy
+    environment:
+      RUNNER_AUTH_TOKEN: ${RUNNER_AUTH_TOKEN:-}
+    entrypoint: ["/bin/bash", "-lc"]
+    command: >-
+      if [ -z "$${RUNNER_AUTH_TOKEN}" ]; then
+        echo 'Set RUNNER_AUTH_TOKEN after creating a runner in GitLab'; exit 1;
+      fi;
+      if [ ! -s /etc/gitlab-runner/config.toml ]; then
+        gitlab-runner register --non-interactive
+        --url http://gitlab --token "$${RUNNER_AUTH_TOKEN}"
+        --executor docker --docker-image alpine:3.22
+        --docker-host tcp://docker:2376 --docker-tlsverify
+        --docker-tls-cert-path /certs/client
+        --description compose-rootless-dind-runner;
+      fi;
+      exec gitlab-runner run --user=gitlab-runner --working-directory=/home/gitlab-runner
+    volumes:
+      - runner-config:/etc/gitlab-runner
+      - runner-certs:/certs/client:ro
+    networks: [gitlab-net]
+    security_opt: ["no-new-privileges:true"]
+
+volumes:
+  gitlab-config:
+  gitlab-logs:
+  gitlab-data:
+  runner-config:
+  runner-certs:
+  dind-data:
+networks:
+  gitlab-net:
+    driver: bridge

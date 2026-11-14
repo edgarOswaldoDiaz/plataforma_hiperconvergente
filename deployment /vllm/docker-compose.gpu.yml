@@ -1,0 +1,5 @@
+services:
+  vllm:
+    image: vllm/vllm-openai:v0.32.0
+    gpus: all
+    shm_size: 8gb

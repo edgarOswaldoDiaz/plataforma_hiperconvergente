@@ -1,0 +1,48 @@
+name: mlflow-stack
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${MLFLOW_DB_NAME:-mlflow}
+      POSTGRES_USER: ${MLFLOW_DB_USER:-mlflow}
+      POSTGRES_PASSWORD: ${MLFLOW_DB_PASSWORD:?Set MLFLOW_DB_PASSWORD in .env}
+    volumes: [mlflow-db:/var/lib/postgresql/data]
+    networks: [mlflow-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    security_opt: ["no-new-privileges:true"]
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v3.17.1-full
+    restart: unless-stopped
+    depends_on:
+      db: {condition: service_healthy}
+    command:
+      - mlflow
+      - server
+      - --host
+      - 0.0.0.0
+      - --port
+      - "5000"
+      - --backend-store-uri
+      - postgresql+psycopg2://${MLFLOW_DB_USER:-mlflow}:${MLFLOW_DB_PASSWORD}@db:5432/${MLFLOW_DB_NAME:-mlflow}
+      - --artifacts-destination
+      - /mlartifacts
+      - --serve-artifacts
+      - --allowed-hosts
+      - localhost,127.0.0.1
+    ports: ["127.0.0.1:5000:5000"]
+    volumes: [mlflow-artifacts:/mlartifacts]
+    networks: [mlflow-net]
+    security_opt: ["no-new-privileges:true"]
+
+volumes:
+  mlflow-db:
+  mlflow-artifacts:
+networks:
+  mlflow-net:
+    driver: bridge

@@ -1,0 +1,38 @@
+name: minio-community-source-build
+services:
+  init-permissions:
+    image: busybox:1.37
+    user: "0:0"
+    command: ["sh", "-c", "chown -R 65532:65532 /data"]
+    volumes: [minio-data:/data]
+    networks: [minio-net]
+    restart: "no"
+
+  minio:
+    build:
+      context: .
+      args:
+        MINIO_REF: ${MINIO_REF:-RELEASE.2025-10-15T17-29-55Z}
+    restart: unless-stopped
+    depends_on:
+      init-permissions: {condition: service_completed_successfully}
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?Set MINIO_ROOT_USER in .env}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in .env}
+    command: ["server", "/data", "--console-address", ":9001"]
+    ports:
+      - "127.0.0.1:19000:9000"
+      - "127.0.0.1:19001:9001"
+    volumes: [minio-data:/data]
+    networks: [minio-net]
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+
+volumes:
+  minio-data:
+networks:
+  minio-net:
+    driver: bridge
