@@ -1,7 +1,5 @@
 # Referencias bibliográficas por tema
 
-> Las referencias se presentan en formato APA 7 y se seleccionaron por pertinencia temática. Se priorizan normas internacionales, marcos públicos, obras académicas y documentación técnica reconocida. Una misma fuente puede aparecer en varios apartados cuando sustenta más de un componente.
-
 # Fundamentos y arquitectura tecnológica
 
 ## 1. Contexto estratégico y visión integral de la plataforma
