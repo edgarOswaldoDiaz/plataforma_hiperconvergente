@@ -17,20 +17,8 @@ La arquitectura tecnológica comienza a configurarse como un continuo compuesto 
 Esta integración puede conceptualizarse como una arquitectura de datos inteligente en la que los mismos activos informacionales alimentan *dashboards*, modelos predictivos, motores de recomendación, aplicaciones de IA generativa y agentes autónomos.
 
 
-**Metodología**
+**Temas**
 
-
-El concepto de **convergencia de plataformas** no significa necesariamente que todas las tecnologías deban pertenecer a un único proveedor. Significa que las capacidades deben interoperar mediante estándares, interfaces, metadatos, catálogos, políticas y mecanismos de seguridad comunes. El objetivo arquitectónico es disminuir los silos, reducir duplicidades y permitir que los datos puedan circular bajo controles consistentes a través de diferentes componentes tecnológicos.
-
-En este nuevo contexto, el dato debe concebirse como un activo con ciclo de vida completo. Su valor no depende exclusivamente de su volumen, sino de atributos como calidad, contexto, procedencia, oportunidad, integridad, clasificación y capacidad de ser utilizado de manera segura.
-
-La reciente publicación de **ISO/IEC 38505-1:2026** refuerza esta perspectiva al establecer principios para el gobierno de los datos y señalar que este gobierno comprende tanto el uso como la protección y control de los datos dentro de la organización. La norma aplica a organizaciones públicas y privadas y vincula el gobierno de datos con el gobierno de TI y, en última instancia, con el gobierno organizacional. 
-
-**Convergencia de plataformas como estrategia empresarial y tecnológica**
-
-Uno de los principales retos tecnológicos consiste en evitar que la innovación en IA genere una nueva fragmentación. Una organización puede disponer simultáneamente de múltiples *data lakes*, almacenes analíticos, plataformas de *machine learning*, servicios de IA generativa, herramientas de integración, sistemas de gobierno y soluciones de ciberseguridad.
-
-Cuando cada plataforma administra identidades, políticas, metadatos y controles de manera independiente, aumenta la complejidad operativa y disminuye la capacidad de gobierno.
 
 ______________________
 
