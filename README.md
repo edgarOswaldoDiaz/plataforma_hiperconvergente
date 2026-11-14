@@ -5,7 +5,7 @@ Objetivo: Visión integral para el diseño, implementación y operación de ecos
 **Temas**
 
 - [Fundamentos y arquitectura tecnológica](assets/fundamentos.md)
-- Gobernanza, normatividad y calidad de los datos
+- [Gobernanza, normatividad y calidad de los datos](assets/gobernanza.md)
 - Seguridad, analítica e inteligencia artificial
 - Administración, sostenibilidad y gestión de riesgos
 - Implementación y evolución institucional
