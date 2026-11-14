@@ -1,2 +1,2 @@
 # Diagrama de componentes
-<img src="assets/componentes.png">
+<img src="assets/componentes.jpg">
