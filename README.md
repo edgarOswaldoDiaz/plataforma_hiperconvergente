@@ -11,6 +11,7 @@ Objetivo: Diseñar e implementar una plataforma tecnológica hiperconvergente qu
 - [Implementación y evolución institucional](assets/implementación.md)
 - [Referencias](assets/referencias.md)
 
+[Resumen](assets/plataforma_hiperconvergente_ecosistema_datos.md)
 ______________________
 
 > CISO | oswaldo.diaz@inegi.org.mx 
