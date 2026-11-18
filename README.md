@@ -15,7 +15,7 @@ Diagrama Framework
 
 <img src="assets/framework_plataforma_hiperconvergente.jpg">
 
-[Resumen](assets/plataforma_hiperconvergente_ecosistema_datos.md)
+[Resumen del artículo](assets/plataforma_hiperconvergente_ecosistema_datos.md)
 ______________________
 
 > CISO | oswaldo.diaz@inegi.org.mx 
