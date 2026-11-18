@@ -11,8 +11,6 @@ Objetivo: Diseñar e implementar una plataforma tecnológica hiperconvergente qu
 - [Implementación y evolución institucional](assets/implementación.md)
 - [Referencias](assets/referencias.md)
 
-Diagrama Framework
-
 <img src="assets/framework_plataforma_hiperconvergente.jpg">
 
 [Resumen del artículo](assets/plataforma_hiperconvergente_ecosistema_datos.md)
